@@ -28,8 +28,10 @@ public class GameManager : MonoBehaviour
         //garantir que só existe um
         GameManager[] ops = GameObject.FindObjectsOfType<GameManager>();
         if (ops.Length > 1)
+        {
             Destroy(this.gameObject);
-
+            return;
+        }
         DontDestroyOnLoad(this.gameObject);
 
         //evento para quando cena é carregada
@@ -38,6 +40,7 @@ public class GameManager : MonoBehaviour
 
     private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
     {
+        Debug.Log("Nova cena carregada "+arg0.name);
         //sempre que uma cena é carregada
         Time.timeScale = 1;
 
@@ -69,6 +72,7 @@ public class GameManager : MonoBehaviour
             PlayerPrefs.SetInt("nivel", SceneManager.GetActiveScene().buildIndex);
             PlayerPrefs.Save();
         }
+
     }
 
     private void AtualizarDadosJogador()
