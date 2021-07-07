@@ -16,6 +16,9 @@ public class MoveNPC : MonoBehaviour
     bool emMovimento = false;
     Rigidbody _rigidbody;
 
+    [SerializeField]
+    bool SeguePlayer = false;   //estado
+    GameObject _player; //referencia para o player
     //NavMesh
     NavMeshAgent _navMeshAgent;
 
@@ -32,11 +35,29 @@ public class MoveNPC : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody>();     //faz cache do rigidbody
         _navMeshAgent = GetComponent<NavMeshAgent>();
         _animator = GetComponent<Animator>();
+        //referencia para o player
+        _player = FindObjectOfType<MovePlayer>().gameObject;
     }
 
     // Update is called once per frame
     void Update()
     {
+        //segue player
+        if (SeguePlayer && _player != null && _navMeshAgent != null)
+        {
+            _navMeshAgent.SetDestination(_player.transform.position);
+
+            _animator.SetFloat("velocidade", _navMeshAgent.velocity.magnitude);
+            return;
+        }
+        else
+        {
+            Vector3 pos = transform.position + Vector3.up;//ajustar a posição a meia altura
+            if (Utils.CanYouSeeThis(pos, _player.transform.position))
+            {
+                SeguePlayer = true;
+            }
+        }
         if (pontos.Length == 0)
         {
             Debug.Log("Tem de indicar os pontos a percorrer");
@@ -51,16 +72,23 @@ public class MoveNPC : MonoBehaviour
             if (proximoPonto > pontos.Length - 1)   //não tem mais pontos volta ao inicio
                 proximoPonto = 0;
         }
-        ////direcao
-        //Vector3 direcao = pontos[proximoPonto].position - transform.position;
-        ////rodar na direção do próximo ponto
-        //Quaternion rotacao = Quaternion.LookRotation(direcao, Vector3.up);
-        //transform.rotation = rotacao;
-        ////anda na direção do ponto
-        ////transform.Translate(Vector3.forward*velocidade*Time.deltaTime);
-        //_rigidbody.MovePosition(transform.position + (transform.forward *velocidade* Time.deltaTime));
-        _navMeshAgent.SetDestination(pontos[proximoPonto].position);
+        if (_navMeshAgent == null || _navMeshAgent.enabled==false)
+        {
+            ////direcao
+            Vector3 direcao = pontos[proximoPonto].position - transform.position;
+            ////rodar na direção do próximo ponto
+            Quaternion rotacao = Quaternion.LookRotation(direcao, Vector3.up);
+            transform.rotation = rotacao;
+            ////anda na direção do ponto
+            ////transform.Translate(Vector3.forward*velocidade*Time.deltaTime);
+            _rigidbody.MovePosition(transform.position + (transform.forward *velocidade* Time.deltaTime));
+            _animator.SetFloat("velocidade", velocidade);
+        }
+        else
+        {
+            _navMeshAgent.SetDestination(pontos[proximoPonto].position);
 
-        _animator.SetFloat("velocidade", _navMeshAgent.velocity.magnitude);
+            _animator.SetFloat("velocidade", _navMeshAgent.velocity.magnitude);
+        }
     }
 }
